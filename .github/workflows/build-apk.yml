@@ -33,6 +33,8 @@ jobs:
         with:
           distribution: temurin
           java-version: 17
+          cache: gradle
+
       - name: Install dependencies & build shared package
         run: |
           npm install --legacy-peer-deps
@@ -40,13 +42,17 @@ jobs:
 
       - name: Run Expo Prebuild for Android
         working-directory: apps/mobile
-        run: npx expo prebuild --platform android --no-install
+        run: npx expo prebuild --platform android --no-install --clean
 
       - name: Build Release APK with Gradle
         working-directory: apps/mobile/android
         run: |
+          echo "" >> gradle.properties
+          echo "android.kotlinVersion=1.9.25" >> gradle.properties
+          echo "kotlinVersion=1.9.25" >> gradle.properties
+          sed -i "s/1.9.24/1.9.25/g" build.gradle || true
           chmod +x gradlew
-          ./gradlew assembleRelease -PreactNativeArchitectures=arm64-v8a,armeabi-v7a -PnewArchEnabled=false --no-daemon
+          ./gradlew assembleRelease -PreactNativeArchitectures=arm64-v8a,armeabi-v7a -PnewArchEnabled=false -Pandroid.kotlinVersion=1.9.25 --no-daemon
 
       - name: Copy APK to ReelRush.apk
         run: |
@@ -63,8 +69,8 @@ jobs:
       - name: Publish APK to GitHub Releases
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v1.0.0-latest
-          name: "ReelRush Android APK (Latest)"
+          tag_name: v1.0.0
+          name: "ReelRush v1.0.0 — Android APK"
           body: |
             ### ReelRush — Fast. Clean. No Ads.
             Download and install **ReelRush.apk** directly on your Android phone to share with friends.
