@@ -33,10 +33,6 @@ jobs:
         with:
           distribution: temurin
           java-version: 17
-
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
       - name: Install dependencies & build shared package
         run: |
           npm install --legacy-peer-deps
