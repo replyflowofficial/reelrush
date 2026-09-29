@@ -1,9 +1,8 @@
-name: Build ReelRush Android APK
+name: Build Android APK
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
   workflow_dispatch:
 
 permissions:
@@ -11,7 +10,7 @@ permissions:
 
 jobs:
   build-apk:
-    name: Build Standalone Release APK
+    name: Build ReelRush Release APK
     runs-on: ubuntu-latest
     env:
       EXPO_PUBLIC_BACKEND_URL: https://reelrush-production-39f5.up.railway.app
@@ -38,10 +37,12 @@ jobs:
         run: |
           npm install --legacy-peer-deps
           npm run build:shared
+          sed -i 's/kotlin = "1.9.24"/kotlin = "1.9.25"/g' node_modules/@react-native/gradle-plugin/gradle/libs.versions.toml
 
       - name: Run Expo Prebuild for Android
         working-directory: apps/mobile
-        run: npx expo prebuild --platform android --no-install --clean
+        run: |
+          npx expo prebuild --platform android --no-install --clean
 
       - name: Build Release APK with Gradle
         working-directory: apps/mobile/android
@@ -49,6 +50,7 @@ jobs:
           echo "" >> gradle.properties
           echo "android.kotlinVersion=1.9.25" >> gradle.properties
           echo "kotlinVersion=1.9.25" >> gradle.properties
+          echo "org.gradle.jvmargs=-Xmx4096m -XX:MaxMetaspaceSize=1024m" >> gradle.properties
           sed -i "s/1.9.24/1.9.25/g" build.gradle || true
           chmod +x gradlew
           ./gradlew assembleRelease -PreactNativeArchitectures=arm64-v8a,armeabi-v7a -PnewArchEnabled=false -Pandroid.kotlinVersion=1.9.25 --no-daemon
@@ -61,20 +63,25 @@ jobs:
       - name: Upload ReelRush.apk Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ReelRush-Android-APK
+          name: ReelRush-APK
           path: ./ReelRush.apk
           if-no-files-found: error
 
       - name: Publish APK to GitHub Releases
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v1.0.0
-          name: "ReelRush v1.0.0 — Android APK"
+          tag_name: v1.0.0-latest
+          name: "ReelRush Android APK (Latest)"
           body: |
-            ### ReelRush — Fast. Clean. No Ads.
-            Download and install **ReelRush.apk** directly on your Android phone to share with friends.
-            - Includes native **Instagram → Share → ReelRush** support
-            - Pre-connected to cloud backend (`reelrush-production-39f5.up.railway.app`)
+            ## ReelRush Android APK
+            - **Fast Auto-Download:** Automatically prepares & downloads Instagram Reels/Videos
+            - **Direct Share Support:** Share directly from the Instagram app to ReelRush
+            - **Auto Save to Gallery:** Requests storage permission and saves MP4 directly to your phone's gallery
+            - **100% Ad-Free & Clean UI:** Custom splash screen, zero clutter
+            
+            ### How to Install
+            1. Tap **ReelRush.apk** below under **Assets** to download.
+            2. Open the downloaded file on your Android phone and tap **Install**.
           files: ./ReelRush.apk
           prerelease: false
         env:
