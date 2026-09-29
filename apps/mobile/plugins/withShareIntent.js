@@ -84,8 +84,8 @@ function withAndroidMainActivityShareBridge(config, { urlScheme = 'reelrush' }) 
     super.onNewIntent(transformed)
   }
 
-  private fun transformShareIntentIfNeeded(intent: Intent?): Intent? {
-    if (intent == null) return null
+  private fun transformShareIntentIfNeeded(intent: Intent?): Intent {
+    if (intent == null) return Intent()
     if (Intent.ACTION_SEND == intent.action && intent.type?.startsWith("text/") == true) {
       val sharedText = intent.getStringExtra(Intent.EXTRA_TEXT)
       if (!sharedText.isNullOrBlank()) {
@@ -102,7 +102,7 @@ function withAndroidMainActivityShareBridge(config, { urlScheme = 'reelrush' }) 
     if (contents.includes('super.onCreate(')) {
       contents = contents.replace(
         /super\.onCreate\([^)]*\)/,
-        (match) => `intent = transformShareIntentIfNeeded(intent)\n    ${match}`
+        (match) => `setIntent(transformShareIntentIfNeeded(intent))\n    ${match}`
       );
     }
 
