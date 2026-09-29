@@ -199,8 +199,6 @@ class YtDlpService {
         '20',
         '--retries',
         '2',
-        '--concurrent-fragments',
-        '4',
         '--format',
         'best[ext=mp4]/bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[vcodec!=none]/best',
         '--merge-output-format',

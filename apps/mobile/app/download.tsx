@@ -21,10 +21,7 @@ import {
 } from '@reelrush/shared';
 import { useApp } from '../src/context/AppContext';
 import { ClientApiError, createDownloadJob } from '../src/services/api';
-import {
-  downloadVideoToDevice,
-  ensureMediaLibraryPermission,
-} from '../src/services/mediaDownloader';
+import { downloadVideoToDevice } from '../src/services/mediaDownloader';
 import { ScalePressable } from '../src/components/ScalePressable';
 import { VideoPreviewCard } from '../src/components/VideoPreviewCard';
 import { DownloadProgressStepper } from '../src/components/DownloadProgressStepper';
@@ -39,7 +36,7 @@ export default function DownloadScreen() {
   const source = typeof params.source === 'string' ? params.source : 'manual';
 
   const [stepState, setStepState] = useState<DownloadStepState>('preparing');
-  const [progress, setProgress] = useState<number>(12);
+  const [progress, setProgress] = useState<number>(8);
   const [jobInfo, setJobInfo] = useState<DownloadJobInfo | null>(null);
   const [awaitingUserConfirm, setAwaitingUserConfirm] =
     useState<boolean>(false);
@@ -55,7 +52,7 @@ export default function DownloadScreen() {
   }, []);
 
   /**
-   * Step 2: Stream the prepared MP4 file to the user's device and save to Gallery
+   * Step 2: Stream the prepared MP4 file from backend to the user's device and save to Gallery
    */
   const executeDeviceSave = useCallback(
     async (preparedJob: DownloadJobInfo) => {
@@ -133,7 +130,7 @@ export default function DownloadScreen() {
   );
 
   /**
-   * Step 1: Validate URL, request storage permission in parallel, & fetch video
+   * Step 1: Validate URL & call backend POST /api/download to run yt-dlp and extract metadata
    */
   const prepareVideoFromUrl = useCallback(async () => {
     setErrorMessage(null);
@@ -141,7 +138,7 @@ export default function DownloadScreen() {
     setJobInfo(null);
     setAwaitingUserConfirm(false);
     setStepState('preparing');
-    setProgress(12);
+    setProgress(10);
 
     const validation = validateAndNormalizeInstagramUrl(rawUrl);
     if (!validation.valid) {
@@ -150,23 +147,20 @@ export default function DownloadScreen() {
       return;
     }
 
-    // Request Gallery/Storage permission in parallel while the video is being fetched
-    void ensureMediaLibraryPermission();
-
-    // Smoothly advance visual progress during fast fetch
+    // Smoothly advance visual progress while backend processes yt-dlp
     const progressInterval = setInterval(() => {
       setProgress((prev) => {
-        if (prev < 30) {
+        if (prev < 25) {
           setStepState('fetching');
-          return prev + 6;
-        }
-        if (prev < 58) {
-          setStepState('processing');
           return prev + 4;
+        }
+        if (prev < 55) {
+          setStepState('processing');
+          return prev + 2;
         }
         return prev;
       });
-    }, 300);
+    }, 450);
 
     try {
       const prepared = await createDownloadJob(validation.data.normalizedUrl);
@@ -176,7 +170,7 @@ export default function DownloadScreen() {
 
       setJobInfo(prepared);
       setStepState('processing');
-      setProgress(62);
+      setProgress(60);
 
       if (settings.askBeforeDownloading) {
         setAwaitingUserConfirm(true);
@@ -271,7 +265,7 @@ export default function DownloadScreen() {
               />
             </View>
             <Text className="text-base font-bold text-zinc-950 dark:text-zinc-50 mb-1">
-              Downloading your video...
+              Preparing your video...
             </Text>
             <Text
               numberOfLines={1}
@@ -344,10 +338,10 @@ export default function DownloadScreen() {
               </View>
               <View className="flex-1">
                 <Text className="text-base font-bold text-zinc-950 dark:text-zinc-50">
-                  Saved to your gallery
+                  Saved to your device
                 </Text>
                 <Text className="text-xs text-zinc-500 dark:text-zinc-400">
-                  Video saved directly to your gallery in full quality.
+                  Temporary server files have been cleaned up automatically.
                 </Text>
               </View>
             </View>

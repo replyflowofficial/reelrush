@@ -4,13 +4,13 @@ import { Platform } from 'react-native';
 import { AppSettings, HistoryItem } from '@reelrush/shared';
 
 const HISTORY_STORAGE_KEY = '@reelrush:history:v1';
-const SETTINGS_STORAGE_KEY = '@reelrush:settings:v2';
+const SETTINGS_STORAGE_KEY = '@reelrush:settings:v1';
 const MAX_HISTORY_ITEMS = 100;
 
 export const DEFAULT_SETTINGS: AppSettings = {
   // Clean light theme as default per design specification
   theme: 'light',
-  askBeforeDownloading: false,
+  askBeforeDownloading: true,
   wifiOnly: false,
 };
 

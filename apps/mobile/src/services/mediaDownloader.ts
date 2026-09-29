@@ -18,49 +18,6 @@ export interface DeviceDownloadResult {
 }
 
 /**
- * Checks whether storage / gallery permission is currently granted.
- */
-export async function checkMediaLibraryPermission(): Promise<boolean> {
-  if (Platform.OS === 'web') return true;
-  try {
-    const status = await MediaLibrary.getPermissionsAsync(true);
-    if (status.granted) return true;
-  } catch {
-    // Fallback for devices that don't support writeOnly flag
-  }
-  try {
-    const status = await MediaLibrary.getPermissionsAsync(false);
-    return status.granted;
-  } catch {
-    return false;
-  }
-}
-
-/**
- * Requests storage / gallery permission across Android 9–14+ and iOS.
- */
-export async function ensureMediaLibraryPermission(): Promise<boolean> {
-  if (Platform.OS === 'web') return true;
-
-  const alreadyGranted = await checkMediaLibraryPermission();
-  if (alreadyGranted) return true;
-
-  try {
-    const writeOnlyPerm = await MediaLibrary.requestPermissionsAsync(true);
-    if (writeOnlyPerm.granted) return true;
-  } catch {
-    // Fallback to standard permission request
-  }
-
-  try {
-    const fullPerm = await MediaLibrary.requestPermissionsAsync(false);
-    return fullPerm.granted;
-  } catch {
-    return false;
-  }
-}
-
-/**
  * Downloads the processed MP4 stream from the backend to the user's device
  * and saves it to the native photo/video library (or triggers browser download on web).
  */
@@ -112,11 +69,11 @@ export async function downloadVideoToDevice({
   }
 
   // Native iOS & Android download + MediaLibrary save
-  const granted = await ensureMediaLibraryPermission();
-  if (!granted) {
+  const permission = await MediaLibrary.requestPermissionsAsync(true);
+  if (!permission.granted) {
     throw new ClientApiError(
       'YTDLP_FAILURE',
-      'Storage permission is required to save videos to your gallery. Please allow access.'
+      'Photo library permission is required to save videos to your device.'
     );
   }
 
