@@ -8,11 +8,12 @@
     "apps/*"
   ],
   "scripts": {
+    "start": "npm run start --workspace=@reelrush/mobile",
     "build:shared": "npm run build --workspace=@reelrush/shared",
     "dev:server": "npm run dev --workspace=@reelrush/server",
     "start:server": "npm run start --workspace=@reelrush/server",
     "build:server": "npm run build --workspace=@reelrush/server",
-    "dev:mobile": "npm run start --workspace=@reelrush/mobile",
+    "dev:mobile": "npm run start --workspace=@reelrush/mobile -- --clear",
     "android": "npm run android --workspace=@reelrush/mobile",
     "ios": "npm run ios --workspace=@reelrush/mobile",
     "web": "npm run web --workspace=@reelrush/mobile",

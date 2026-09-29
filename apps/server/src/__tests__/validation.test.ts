@@ -148,3 +148,59 @@ describe('Server API & ytDlpService Integration', () => {
   });
 });
 
+
+describe('Server API & ytDlpService Integration', () => {
+  it('resolves yt-dlp availability via execFile without shell', async () => {
+    const { ytDlpService } = await import('../services/ytDlpService');
+    const resolved = await ytDlpService.checkAvailability();
+    assert.ok(resolved.version.length > 0);
+    assert.ok(resolved.executable.length > 0);
+  });
+
+  it('serves /api/health and rejects invalid/SSRF URLs on POST /api/download', async () => {
+    const { app } = await import('../server');
+    const server = app.listen(0);
+    const address = server.address();
+    const port = typeof address === 'object' && address ? address.port : 0;
+    const baseUrl = `http://127.0.0.1:${port}`;
+
+    try {
+      // 1. Health check
+      const healthRes = await fetch(`${baseUrl}/api/health`);
+      assert.equal(healthRes.status, 200);
+      const healthJson = (await healthRes.json()) as {
+        status: string;
+        ytDlpAvailable: boolean;
+      };
+      assert.equal(healthJson.status, 'ok');
+      assert.equal(healthJson.ytDlpAvailable, true);
+
+      // 2. Reject non-Instagram URL
+      const badRes = await fetch(`${baseUrl}/api/download`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: 'https://example.com/reel/123456' }),
+      });
+      assert.equal(badRes.status, 400);
+      const badJson = (await badRes.json()) as {
+        success: boolean;
+        error: { code: string; message: string };
+      };
+      assert.equal(badJson.success, false);
+      assert.equal(badJson.error.code, 'INVALID_URL');
+      assert.equal(
+        badJson.error.message,
+        "That doesn't look like an Instagram link."
+      );
+
+      // 3. Reject missing job on GET /api/download/:id
+      const missingRes = await fetch(
+        `${baseUrl}/api/download/00000000000000000000000000000000`
+      );
+      assert.equal(missingRes.status, 404);
+    } finally {
+      server.close();
+    }
+  });
+});
+

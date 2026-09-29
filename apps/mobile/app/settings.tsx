@@ -1,16 +1,17 @@
-import React, { useCallback, useState } from 'react';
-import { ScrollView, Switch, Text, View } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { Linking, ScrollView, Switch, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import {
   ArrowLeft,
   Check,
-  Code2,
   Database,
+  FolderCheck,
   HardDrive,
   Info,
   Laptop,
+  Lock,
   Moon,
   ShieldCheck,
   SlidersHorizontal,
@@ -22,7 +23,11 @@ import {
 import { ThemeMode } from '@reelrush/shared';
 import { useApp } from '../src/context/AppContext';
 import { clearLocalTempCache } from '../src/services/storage';
-import { APP_VERSION, getBackendBaseUrl } from '../src/services/config';
+import {
+  checkMediaLibraryPermission,
+  ensureMediaLibraryPermission,
+} from '../src/services/mediaDownloader';
+import { APP_VERSION } from '../src/services/config';
 import { ScalePressable } from '../src/components/ScalePressable';
 
 const THEME_OPTIONS: Array<{
@@ -47,6 +52,11 @@ export default function SettingsScreen() {
   } = useApp();
 
   const [statusToast, setStatusToast] = useState<string | null>(null);
+  const [hasStoragePerm, setHasStoragePerm] = useState<boolean>(false);
+
+  useEffect(() => {
+    void checkMediaLibraryPermission().then(setHasStoragePerm);
+  }, []);
 
   const showFeedback = useCallback((msg: string) => {
     setStatusToast(msg);
@@ -54,6 +64,16 @@ export default function SettingsScreen() {
       setStatusToast((prev) => (prev === msg ? null : prev));
     }, 2600);
   }, []);
+
+  const handleRequestStoragePermission = useCallback(async () => {
+    const granted = await ensureMediaLibraryPermission();
+    setHasStoragePerm(granted);
+    if (granted) {
+      showFeedback('Gallery storage permission enabled.');
+    } else {
+      void Linking.openSettings();
+    }
+  }, [showFeedback]);
 
   const handleClearHistory = useCallback(async () => {
     await wipeHistory();
@@ -209,7 +229,7 @@ export default function SettingsScreen() {
                     Ask before downloading
                   </Text>
                   <Text className="text-xs text-zinc-500 dark:text-zinc-400">
-                    Show video preview and details before saving to device
+                    When off, videos save to your gallery automatically
                   </Text>
                 </View>
               </View>
@@ -266,10 +286,51 @@ export default function SettingsScreen() {
           className="mb-5"
         >
           <Text className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-2.5 px-1">
-            Storage
+            Storage & Permissions
           </Text>
 
           <View className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 divide-y divide-zinc-100 dark:divide-zinc-800/80">
+            <ScalePressable
+              onPress={() => void handleRequestStoragePermission()}
+              className="p-4 flex-row items-center justify-between"
+            >
+              <View className="flex-row items-center gap-3 flex-1 pr-3">
+                <View className="w-9 h-9 rounded-xl bg-zinc-100 dark:bg-zinc-800 items-center justify-center">
+                  <FolderCheck
+                    size={16}
+                    color={isDark ? '#FAFAFA' : '#18181B'}
+                    strokeWidth={2}
+                  />
+                </View>
+                <View className="flex-1">
+                  <Text className="text-sm font-semibold text-zinc-950 dark:text-zinc-50">
+                    Gallery access
+                  </Text>
+                  <Text className="text-xs text-zinc-500 dark:text-zinc-400">
+                    Required to save downloaded videos to your phone
+                  </Text>
+                </View>
+              </View>
+
+              <View
+                className={`px-3 py-1.5 rounded-lg ${
+                  hasStoragePerm
+                    ? 'bg-emerald-50 dark:bg-emerald-950/60'
+                    : 'bg-rose-50 dark:bg-rose-950/60'
+                }`}
+              >
+                <Text
+                  className={`text-xs font-semibold ${
+                    hasStoragePerm
+                      ? 'text-emerald-700 dark:text-emerald-400'
+                      : 'text-rose-600 dark:text-rose-400'
+                  }`}
+                >
+                  {hasStoragePerm ? 'Allowed' : 'Allow'}
+                </Text>
+              </View>
+            </ScalePressable>
+
             <ScalePressable
               onPress={() => void handleClearHistory()}
               className="p-4 flex-row items-center justify-between"
@@ -359,7 +420,7 @@ export default function SettingsScreen() {
                     ReelRush
                   </Text>
                   <Text className="text-xs text-zinc-500 dark:text-zinc-400">
-                    API: {getBackendBaseUrl()}
+                    Fast Instagram Video & Reel Saver
                   </Text>
                 </View>
               </View>
@@ -370,7 +431,7 @@ export default function SettingsScreen() {
 
             <View className="p-4 flex-row items-start gap-3">
               <View className="w-9 h-9 rounded-xl bg-zinc-100 dark:bg-zinc-800 items-center justify-center mt-0.5">
-                <Code2
+                <Lock
                   size={16}
                   color={isDark ? '#FAFAFA' : '#18181B'}
                   strokeWidth={2}
@@ -378,13 +439,12 @@ export default function SettingsScreen() {
               </View>
               <View className="flex-1">
                 <Text className="text-sm font-semibold text-zinc-950 dark:text-zinc-50 mb-1">
-                  yt-dlp Attribution & License
+                  Privacy & Terms
                 </Text>
                 <Text className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
-                  Powered by yt-dlp (Unlicense / Public Domain). ReelRush
-                  processes publicly accessible links temporarily without
-                  storing media in cloud storage. Only download content you have
-                  permission to save.
+                  ReelRush is 100% ad-free with zero trackers or analytics.
+                  Videos are saved directly to your device gallery. Only
+                  download public content that you have permission to save.
                 </Text>
               </View>
             </View>

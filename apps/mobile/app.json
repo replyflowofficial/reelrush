@@ -7,6 +7,12 @@
     "scheme": "reelrush",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#09090B"
+    },
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.reelrush.app",
@@ -22,9 +28,14 @@
     },
     "android": {
       "package": "com.reelrush.app",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#09090B"
+      },
       "permissions": [
         "android.permission.INTERNET",
         "android.permission.READ_MEDIA_VIDEO",
+        "android.permission.READ_EXTERNAL_STORAGE",
         "android.permission.WRITE_EXTERNAL_STORAGE"
       ],
       "intentFilters": [
