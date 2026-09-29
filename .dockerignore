@@ -1,0 +1,13 @@
+node_modules
+**/node_modules
+**/dist
+.git
+.gitignore
+.expo
+apps/mobile
+*.log
+.env
+.env.*
+!.env.example
+tmp
+temp

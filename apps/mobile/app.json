@@ -1,0 +1,72 @@
+{
+  "expo": {
+    "name": "ReelRush",
+    "slug": "reelrush",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "reelrush",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.reelrush.app",
+      "entitlements": {
+        "com.apple.security.application-groups": [
+          "group.com.reelrush.app"
+        ]
+      },
+      "infoPlist": {
+        "NSPhotoLibraryAddUsageDescription": "ReelRush needs permission to save downloaded Instagram videos to your Photo Library.",
+        "NSPhotoLibraryUsageDescription": "ReelRush needs permission to save downloaded Instagram videos to your Photo Library."
+      }
+    },
+    "android": {
+      "package": "com.reelrush.app",
+      "permissions": [
+        "android.permission.INTERNET",
+        "android.permission.READ_MEDIA_VIDEO",
+        "android.permission.WRITE_EXTERNAL_STORAGE"
+      ],
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "reelrush"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
+        }
+      ]
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "single"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "Allow ReelRush to save downloaded videos to your media library.",
+          "savePhotosPermission": "Allow ReelRush to save downloaded videos to your media library.",
+          "isAccessMediaLocationEnabled": false
+        }
+      ],
+      [
+        "./plugins/withShareIntent",
+        {
+          "iosAppGroup": "group.com.reelrush.app",
+          "urlScheme": "reelrush"
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

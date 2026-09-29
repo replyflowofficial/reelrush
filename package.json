@@ -1,0 +1,25 @@
+{
+  "name": "reelrush",
+  "version": "1.0.0",
+  "private": true,
+  "description": "ReelRush — Fast, Clean, 100% Ad-Free Instagram Reel & Video Downloader",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "build:shared": "npm run build --workspace=@reelrush/shared",
+    "dev:server": "npm run dev --workspace=@reelrush/server",
+    "start:server": "npm run start --workspace=@reelrush/server",
+    "build:server": "npm run build --workspace=@reelrush/server",
+    "dev:mobile": "npm run start --workspace=@reelrush/mobile",
+    "android": "npm run android --workspace=@reelrush/mobile",
+    "ios": "npm run ios --workspace=@reelrush/mobile",
+    "web": "npm run web --workspace=@reelrush/mobile",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
